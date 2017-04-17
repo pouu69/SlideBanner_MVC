@@ -74,6 +74,7 @@
         }
       }
 
+      this.$slideItems.on('transitionend', this._handleTransitionEnd.bind(this));
       this.$navigator.on('click', this._handleClickNavigator.bind(this));
       this.$indicator.on('click', this._handleClickIndicator.bind(this));
     },
@@ -89,6 +90,7 @@
         }
       }
 
+      this.$slideItems.off('transitionend');
       this.$navigator.off('click');
       this.$indicator.off('click');
     },
