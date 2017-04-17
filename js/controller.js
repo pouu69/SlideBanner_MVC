@@ -1,23 +1,33 @@
 (function($, window){
   function Controller(view, model){
-    this._view = view;
-    this._model = model;
+    var self = this;
 
-    this._bindViewEvts();
-    this._bindModelEvts();
+    self._view = view;
+    self._model = model;
+
+    self._bindViewEvts();
+    self._bindModelEvts();
+
+    if (!(self instanceof Slider.Controller)) {
+        return new Slider.Controller();
+    }
+
+		return self;
   }
 
   Controller.prototype = {
-    initSlide: function(options){
+    initSlide: function(slideContainer, options){
+      this._model.init(options);
+      this._view.init(slideContainer);
       this.initView(options);
     },
 
-    initView: function(options){
+    initView: function(){
       var curDevice = this._view.deviceCheck();
-      this._model.setDevice(curDevice);
-      options.device = curDevice;
+      this._model.device = curDevice;
+      this._model.options.device = curDevice;
 
-      this._model.fetchData(options);
+      this._model.fetchData(this._model.options);
     },
 
     /**

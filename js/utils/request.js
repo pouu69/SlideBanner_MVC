@@ -1,8 +1,12 @@
 (function($, window){
   function Request(){
-    var me = this;
+    var self = this;
 
-    return me;
+    if (!(self instanceof Slider.Request)) {
+        return new Slider.Request();
+    }
+
+		return self;
   }
 
   Request.prototype = {
@@ -10,9 +14,6 @@
       var dfd = $.Deferred();
 
       return dfd.resolve(this._successHandler(options));
-        // return $.ajax(options)
-        //   .done($.proxy(this._successHandler, this))
-        //   .fail(this._failHandler);
     },
 
     _successHandler: function(options){

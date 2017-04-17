@@ -1,19 +1,29 @@
 (function($, window){
   function View(model, slideContainer){
-    this._model = model;
+    var self = this;
 
-    this.$slideContainer = slideContainer;
-    this.$slideWrap = this.$slideContainer.children().first();
-    this.$slideItems = null;
-    this.$navigator = null;
-    this.$indicator = null;
+    self._model = model;
 
-    this._template = new Slider.Template();
-    this._observer = new Slider.Observer();
+    self._template = new Slider.Template();
+    self._observer = new Slider.Observer();
+
+    if (!(self instanceof Slider.View)) {
+        return new Slider.View();
+    }
+
+		return self;
   }
 
   View.prototype = {
     /* 초기화 메서드's */
+
+    init: function(slideContainer){
+      this.$slideContainer = slideContainer;
+      this.$slideWrap = this.$slideContainer.children().first();
+      this.$slideItems = null;
+      this.$navigator = null;
+      this.$indicator = null;
+    },
 
     _initView: function(){
       this.$slideWrap.html(this._template.makeView(this._model.getItems()));
@@ -22,7 +32,7 @@
       this.$navigator = $('.slide-navigator');
       this.$indicator = $('.slide-indicator li');
 
-      if(this._model.getDevice() === 'mobile'){
+      if(this._model.device === 'mobile'){
         this.$navigator.addClass('hidden');
       }else{
         this.$navigator.removeClass('hidden');
@@ -54,15 +64,6 @@
      * View에 바인딩할 이벤트 리스너 집합
      */
     _bindEvts: function(){
-      this.$slideItems.on('click','a', function(e){
-        console.log('node Name = ',e.target.nodeName);
-        if(e.target.nodeName === 'a'){
-          if(this._model.isDrag){
-            console.log('anchor isDrag = ',this._model.isDrag);
-            console.log(e);
-          }
-        }
-      }.bind(this));
       window.addEventListener('resize', this._handleResizeSetView.bind(this), false);
       window.addEventListener('orientationchange', this._handleResizeSetView.bind(this), false);
 
@@ -144,7 +145,7 @@
     _handleResizeSetView(e){
       if(e) e.preventDefault();
       var device = this.deviceCheck();
-      if(device !== this._model.getDevice()){
+      if(device !== this._model.device){
         this.dispatchEvent('initView');
       }else{
         this._responsiveSetItemWidth();
@@ -208,7 +209,7 @@
       this.$slideItems.find('li').eq(this._model.getCurIdx()).addClass('current');
 
       this.$slideItems.css({
-        'transition' : 'all 400ms ease',
+        'transition' : 'all ' + this._model.options.speed + 'ms ease',
         '-webkit-transform-style' : 'preserve-3d',
         'transform-style' : 'preserve-3d',
         '-webkit-transform' : 'translate3d(' + ((-1) * this._model.itemWidth * this._model.getCurIdx()) + 'px, 0, 0)',
@@ -225,7 +226,7 @@
 
         this.$slideItems
           .css({
-            'transition' : 'all 100ms ease',
+            'transition' : 'all ' + this._model.options.speed + 'ms ease',
             '-webkit-transform-style' : 'preserve-3d',
             'transform-style' : 'preserve-3d',
             '-webkit-transform' : 'translate3d(' +  (delta + (-1) * position * this._model.getCurIdx())+ 'px, 0, 0)',

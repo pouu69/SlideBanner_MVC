@@ -1,21 +1,28 @@
 (function($, window){
 
   function Template(){
-    this.defaultUlTpl = '<ul class="{{class}}">{{items}}</ul>';
-    this.defaultItemTpl
+    var self = this;
+
+    self.defaultUlTpl = '<ul class="{{class}}">{{items}}</ul>';
+    self.defaultItemTpl
       = '<li data-key={{key}}>'
       +   '<a target="_blank" href="{{link}}">'
       +     '<img src="{{image}}" />'
       +   '</a>'
       + '</li>';
 
-    this.defaultNavigationTpl
+    self.defaultNavigationTpl
       = '<div class="slide-navigator">'
       +   '<span id="prev">&laquo;</span>'
       +   '<span id="next">&raquo;</span>'
       + '</div>';
+    self.defaultIndicatorItemTpl = '<li data-position="{{position}}"></li>';
 
-    this.defaultIndicatorItemTpl = '<li data-position="{{position}}"></li>';
+    if (!(self instanceof Slider.Template)) {
+        return new Slider.Template();
+    }
+
+		return self;
   }
 
   Template.prototype = {

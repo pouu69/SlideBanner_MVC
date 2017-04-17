@@ -1,42 +1,44 @@
 (function($, window){
   'use strict';
 
-  function Model(items, options){
-    this._items = this.items;
-    this._itemsLen = 0;
-    this._curIdx = 0;
-    this._curIndicatorIdx = 0;
-    this._device = null;
+  function Model(){
+    var self = this;
 
-    this.isReRender = false;
-    this.options = options;
-    this.itemWidth = 0;
-    this.startDragX = 0;
-    this.nextDragX = 0;
-    this.isDrag = false;
+    self._items = null;
+    self._itemsLen = 0;
+    self._curIdx = 0;
+    self._curIndicatorIdx = 0;
 
-    this._defaultOptions = {
-      "autoSlide" : true,
-      "infinity" : false
+    self.device = null;
+    self.isReRender = false;
+    self.itemWidth = 0;
+    self.startDragX = 0;
+    self.nextDragX = 0;
+    self.isDrag = false;
+    self.options = {
+      'autoSlide' : true,
+      'infinity' : true,
+      'speed' : 500
     }
 
-    this._observer = new Slider.Observer();
-    this._request = new Slider.Request();
+    self._observer = new Slider.Observer();
+    self._request = new Slider.Request();
 
-    this._init.call(this);
+
+    if (!(self instanceof Slider.Model)) {
+        return new Slider.Model();
+    }
+
+		return self;
   }
 
   Model.prototype = {
     /* 초기화 메서드's */
 
-    _init: function(){
-      this._initOption();
-    },
-
-    _initOption: function(){
-      for(var key in this.options){
-        if(this.options.hasOwnProperty(key) && this._defaultOptions.hasOwnProperty(key)){
-          this._defaultOptions[key] = this.options[key];
+    init: function(_options){
+      for(var key in _options){
+        if(_options.hasOwnProperty(key)){
+          this.options[key] = _options[key];
         }
       }
     },
@@ -57,8 +59,7 @@
       var self = this;
       var query = '?device=' + parameter.device + '&count=' + parameter.count;
       var options = {
-        url: './static/dummy.json' + query ,
-        type: 'get'
+        url: parameter.url + query
       };
 
       this._request.fetch(options)
@@ -96,14 +97,6 @@
 
     getIndicatorIdx: function(){
       return this._curIndicatorIdx;
-    },
-
-    setDevice: function(device){
-      this._device = device;
-    },
-
-    getDevice: function(){
-      return this._device;
     },
 
     /* custom 이벤트 관련 메서드's */

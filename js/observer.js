@@ -2,7 +2,16 @@
   'user strict';
 
   function Observer(){
-    this.$listeners = $(this);
+    var self = this;
+
+    self.$listeners = $(self);
+
+    if (!(self instanceof Slider.Observer)) {
+        return new Slider.Observer();
+    }
+
+		return self;
+
   }
 
   Observer.prototype = {
