@@ -162,7 +162,6 @@
       this._model.itemWidth = Math.floor(this.$slideWrap.outerWidth());
 
       this.$slideItems.width(this._model.itemWidth * this._model.getItemsLen());
-
       this.$slideItems.css({
         '-webkit-transform-style' : 'preserve-3d',
         'transform-style' : 'preserve-3d',
