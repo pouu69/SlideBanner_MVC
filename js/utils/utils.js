@@ -8,4 +8,11 @@
     }
     return size;
   }
+
+  function stopPropagation(e){
+    if (e.cancelBubble) e.cancelBubble = true;
+    else if (e.stopPropagation) e.stopPropagation();
+  }
+
+  window.stopPropagation = stopPropagation;
 })(window);

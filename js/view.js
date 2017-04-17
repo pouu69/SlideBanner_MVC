@@ -33,7 +33,10 @@
 
       this.$slideItems.find('li').eq(this._model.getCurIdx()).addClass('current');
 
-      this._unBindEvts();
+      if(this._model.isReRender){
+        this._unBindEvts();
+      }
+      this._model.isReRender = true;
       this._bindEvts();
     },
 
@@ -51,13 +54,24 @@
      * View에 바인딩할 이벤트 리스너 집합
      */
     _bindEvts: function(){
+      this.$slideItems.on('click','a', function(e){
+        console.log('node Name = ',e.target.nodeName);
+        if(e.target.nodeName === 'a'){
+          if(this._model.isDrag){
+            console.log('anchor isDrag = ',this._model.isDrag);
+            console.log(e);
+          }
+        }
+      }.bind(this));
       window.addEventListener('resize', this._handleResizeSetView.bind(this), false);
       window.addEventListener('orientationchange', this._handleResizeSetView.bind(this), false);
 
-      this.$slideItems.on('mousedown', this._handleStartDrag.bind(this))
-                      .on('transitionend', this._handleTransitionEnd.bind(this))
-                      .on('mousemove', this._handleMoveDrag.bind(this))
-                      .on('mouseup', this._handleEndDrag.bind(this));
+      if(this._model.isTouch()){
+        var slideItems = document.getElementsByClassName('slide-items')[0].childNodes;
+        for(var i = 0, len = slideItems.length ; i < len ; i += 1){
+          this._bindItemTouchEvt(slideItems[i]);
+        }
+      }
 
       this.$navigator.on('click', this._handleClickNavigator.bind(this));
       this.$indicator.on('click', this._handleClickIndicator.bind(this));
@@ -66,32 +80,46 @@
     _unBindEvts: function(){
       window.removeEventListener('resize',this._handleResizeSetView.bind(this));
       window.removeEventListener('orientationchange',this._handleResizeSetView.bind(this));
-      
-      this.$slideItems.off('mousedown')
-                      .off('transitionend')
-                      .off('mousemove')
-                      .off('mouseup');
+
+      if(this._model.isTouch()){
+        var slideItems = document.getElementsByClassName('slide-items')[0].childNodes;
+        for(var i = 0, len = slideItems.length ; i < len ; i += 1){
+          this._unBindItemTouchEvt(slideItems[i]);
+        }
+      }
 
       this.$navigator.off('click');
       this.$indicator.off('click');
     },
 
+    _bindItemTouchEvt: function($item){
+      $item.addEventListener('touchstart', this._handleStartDrag.bind(this), false)
+      $item.addEventListener('touchmove', this._handleMoveDrag.bind(this), false)
+      $item.addEventListener('touchend', this._handleEndDrag.bind(this), false)
+      $item.addEventListener('touchcancel', this._handleEndDrag.bind(this), false);
+    },
+
+    _unBindItemTouchEvt: function($item){
+      $item.removeEventListener('touchstart', this._handleStartDrag.bind(this))
+      $item.removeEventListener('touchmove', this._handleMoveDrag.bind(this))
+      $item.removeEventListener('touchend', this._handleEndDrag.bind(this))
+      $item.removeEventListener('touchcancel', this._handleEndDrag.bind(this));
+    },
+
     /* event 콜백 메서드's */
 
     _handleStartDrag: function(e){
-      this._model.startDrag(e.clientX);
+      this._model.startDrag(e.touches[0].clientX);
     },
 
     _handleMoveDrag: function(e){
-      this._model.moveDrag(e.clientX);
-      e.preventDefault();
-      e.stopPropagation();
+      this._model.moveDrag(e.touches[0].clientX);
+      stopPropagation(e);
     },
 
     _handleEndDrag: function(e){
-      this._model.endDrag(e.clientX);
-      e.preventDefault();
-      e.stopPropagation();
+      this._model.endDrag(e.changedTouches[0].clientX);
+      stopPropagation(e);
     },
 
     _handleClickNavigator: function(e){
@@ -124,14 +152,23 @@
     },
 
     _handleTransitionEnd: function(){
-      this.$slideItems.css('transition', 'none');
-      var $itemLi = this.$slideItems.find('li');
-      $itemLi.eq(this._model.getItemsLen()-1).after($itemLi.eq(0));
+      this.$slideItems.css({'transition' : 'none'});
+
+      // var $itemLi = this.$slideItems.find('li');
+      // $itemLi.eq(this._model.getItemsLen()-1).after($itemLi.eq(0));
     },
 
     _responsiveSetItemWidth: function(){
       this._model.itemWidth = Math.floor(this.$slideWrap.outerWidth());
+
       this.$slideItems.width(this._model.itemWidth * this._model.getItemsLen());
+
+      this.$slideItems.css({
+        '-webkit-transform-style' : 'preserve-3d',
+        'transform-style' : 'preserve-3d',
+        '-webkit-transform' : 'translate3d(' + ((-1) * this._model.itemWidth * this._model.getCurIdx()) + 'px, 0, 0)',
+        'transform' : 'translate3d(' + ((-1) * this._model.itemWidth * this._model.getCurIdx()) + 'px, 0, 0)'
+      });
       this.$slideItems.find('li').css({width: this._model.itemWidth+'px'});
     },
 
@@ -170,9 +207,14 @@
     _move: function(){
       var position = this.$slideItems.find('li').eq(this._model.getCurIdx()).width();
       this.$slideItems.find('li').eq(this._model.getCurIdx()).addClass('current');
-      this.$slideItems
-        .css('transition', 'all 400ms ease')
-        .css('transform', 'translate3d(' + ((-1) * this._model.itemWidth * this._model.getCurIdx()) + 'px, 0, 0)');
+
+      this.$slideItems.css({
+        'transition' : 'all 400ms ease',
+        '-webkit-transform-style' : 'preserve-3d',
+        'transform-style' : 'preserve-3d',
+        '-webkit-transform' : 'translate3d(' + ((-1) * this._model.itemWidth * this._model.getCurIdx()) + 'px, 0, 0)',
+        'transform' : 'translate3d(' + ((-1) * this._model.itemWidth * this._model.getCurIdx()) + 'px, 0, 0)'
+      });
 
       this._setCurrentIndicator(this._model.getIndicatorIdx());
     },
@@ -183,16 +225,20 @@
         var delta = this._model.nextDragX - this._model.startDragX;
 
         this.$slideItems
-          .css('transform', 'translate3d(' +  (delta + (-1) * position * this._model.getCurIdx())+ 'px, 0, 0)');
-        };
+          .css({
+            'transition' : 'all 100ms ease',
+            '-webkit-transform-style' : 'preserve-3d',
+            'transform-style' : 'preserve-3d',
+            '-webkit-transform' : 'translate3d(' +  (delta + (-1) * position * this._model.getCurIdx())+ 'px, 0, 0)',
+            'transform' : 'translate3d(' +  (delta + (-1) * position * this._model.getCurIdx())+ 'px, 0, 0)'
+          });
+      };
     },
 
     _endDrag: function(){
       if (this._model.isDrag) {
-          this._model.isDrag = false;
-
           var delta = this._model.nextDragX - this._model.startDragX;
-          if (Math.abs(delta) > this._model.itemWidth / 5) {
+          if (Math.abs(delta) > this._model.itemWidth / 4) {
             if(delta < 0) this._model.moveNextItem();
             else          this._model.movePrevItem();
           }else{

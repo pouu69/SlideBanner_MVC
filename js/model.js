@@ -8,7 +8,7 @@
     this._curIndicatorIdx = 0;
     this._device = null;
 
-    this.isTouch = false;
+    this.isReRender = false;
     this.options = options;
     this.itemWidth = 0;
     this.startDragX = 0;
@@ -31,7 +31,6 @@
 
     _init: function(){
       this._initOption();
-      this._isTouch();
     },
 
     _initOption: function(){
@@ -68,8 +67,8 @@
                     });
     },
 
-    _isTouch: function(){
-			this.isTouch = 'ontouchstart' in document.documentElement || navigator.userAgent.match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile/i) ? true : false ;
+    isTouch: function(){
+			return 'ontouchstart' in document.documentElement || navigator.userAgent.match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile/i) ? true : false ;
     },
 
     setItems: function(items){
@@ -136,13 +135,21 @@
     },
 
     moveDrag: function(nextPosX){
-      this.nextDragX = nextPosX;
-      this.dispatchEvent('moveDrag');
+      if(this.isDrag){
+        if(nextPosX !== this.nextDragX){
+          this.nextDragX = nextPosX;
+          this.dispatchEvent('moveDrag');
+        }
+      }
     },
 
-    endDrag: function(nextPosX){
-      this.nextDragX = nextPosX;
-      this.dispatchEvent('endDrag');
+    endDrag: function(endDragX){
+      if(this.isDrag && this.nextDragX !== 0){
+        this.dispatchEvent('endDrag');
+      }
+      this.isDrag = false;
+      this.startDragX = 0;
+      this.nextDragX = 0;
     }
   }
 
