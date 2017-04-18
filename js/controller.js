@@ -35,6 +35,7 @@
      */
     _bindViewEvts: function(){
       this._view.addEvent('initView', this.initView.bind(this));
+      this._view.addEvent('setCurIdx', this._setCurIdx.bind(this));
     },
 
     /**
@@ -53,6 +54,12 @@
 
     _showView: function(){
       this._view.render('showView');
+      
+      clearInterval(this._model.infinityLoopInterval);
+      this._model.infinityLoopInterval = null;
+      if(this._model.options.infinity){
+        this._model.infinityLoopInterval = setInterval(this._model.moveNextItem.bind(this._model), this._model.options.speed);
+      }
     },
 
     _moveDrag: function(){
@@ -61,6 +68,10 @@
 
     _endDrag: function(){
       this._view.render('endDrag');
+    },
+
+    _setCurIdx: function(e, args){
+      this._model.setCurIdx(args);
     }
   }
 

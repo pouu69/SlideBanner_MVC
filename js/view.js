@@ -20,7 +20,6 @@
     init: function(slideContainer){
       this.$slideContainer = slideContainer;
       this.$slideWrap = this.$slideContainer.children().first();
-      this.$cloneSlideWrap = null;
       this.$slideItems = null;
       this.$navigator = null;
       this.$indicator = null;
@@ -42,16 +41,11 @@
       this._responsiveSetItemWidth();
       this._setCurrentIndicator(this._model.getIndicatorIdx());
 
-      this.$slideItems.find('li[data-key=' + this._model.getCurIdx() + ']').addClass('current');
-      this.$slideItems.css({marginLeft: ((-1) * this._model.itemWidth)});
-
       if(this._model.isReRender){
         this._unBindEvts();
       }
       this._model.isReRender = true;
       this._bindEvts();
-      this.$cloneSlideWrap = this.$slideWrap.clone();
-
     },
 
     /* custom event 등록 / 실행 */
@@ -60,15 +54,16 @@
       this._observer.subscribe(event, callback);
     },
 
-    dispatchEvent: function(event){
-      this._observer.notify(event);
+    dispatchEvent: function(event, args){
+      this._observer.notify(event, args);
     },
 
     /**
      * View에 바인딩할 이벤트 리스너 집합
      */
     _bindEvts: function(){
-      window.addEventListener('resize', this._handleResizeSetView.bind(this), false);
+
+      window.addEventListener('resize',this._handleResizeSetView.bind(this), false);
       window.addEventListener('orientationchange', this._handleResizeSetView.bind(this), false);
 
       if(this._model.isTouch()){
@@ -116,6 +111,8 @@
     /* event 콜백 메서드's */
 
     _handleStartDrag: function(e){
+      if(!this._model.isClkNav) return;
+      this._model.isClkNav = false;
       this._model.startDrag(e.touches[0].clientX);
     },
 
@@ -127,10 +124,14 @@
     _handleEndDrag: function(e){
       this._model.endDrag(e.changedTouches[0].clientX);
       stopPropagation(e);
+      this._model.isClkNav = true;
     },
 
     _handleClickNavigator: function(e){
       if(e) e.preventDefault();
+      
+      if(!this._model.isClkNav) return;
+      this._model.isClkNav = false;
 
       var $target = $(e.target);
 
@@ -159,21 +160,43 @@
     },
 
     _handleTransitionEnd: function(){
-      this.$slideItems.css({'transition' : 'none'});
+      if(this._model.getCurIdx() > this._model.getItemsLen()-1){
+        this.$slideItems.css({
+          'transition' : 'none',
+          'transform':'translate3d(0, 0, 0)'
+        });
+        this.dispatchEvent('setCurIdx', 0);
+      }else if(this._model.getCurIdx() < 0){
+        this.$slideItems.css({
+          'transition' : 'none',
+          'transform':'translate3d('+ ((-1) * this._model.itemWidth * (this._model.getItemsLen()-1)) + 'px, 0, 0)'
+        });
+        this.dispatchEvent('setCurIdx', this._model.getItemsLen()-1);
+      }else{
+        this.$slideItems.css({'transition' : 'none'});
+      }
+
+      this._model.isClkNav = true;
     },
 
     _responsiveSetItemWidth: function(){
       this._model.itemWidth = Math.floor(this.$slideWrap.outerWidth());
 
-      this.$slideItems.width(this._model.itemWidth * (this._model.getItemsLen() + 2));
       this.$slideItems.css({
+        'width': this._model.itemWidth * (this._model.getItemsLen() + 2),
+        'left': ((-1) * this._model.itemWidth),
         '-webkit-transform-style' : 'preserve-3d',
         'transform-style' : 'preserve-3d',
         '-webkit-transform' : 'translate3d(' + ((-1) * this._model.itemWidth * this._model.getCurIdx()) + 'px, 0, 0)',
         'transform' : 'translate3d(' + ((-1) * this._model.itemWidth * this._model.getCurIdx()) + 'px, 0, 0)'
       });
       this.$slideItems.find('li').css({width: this._model.itemWidth+'px'});
-      this.$slideItems.css({marginLeft: ((-1) * this._model.itemWidth)});
+
+      var height = this._model.device === 'mobile' ? 1036 : 318;
+
+      this.$slideWrap.css({
+        'height': height
+      });
     },
 
     _setCurrentIndicator: function(idx){
@@ -209,26 +232,12 @@
     /* render 콜백 메서드's */
 
     _move: function(){
-      console.log(this._model.getCurIdx() , this._model.getItemsLen());
-      if(this._model.getCurIdx() > this._model.getItemsLen()){
-        this._model._curIdx = 1;
-        // this.$slideItems.replaceWith(this.$cloneSlideWrap);
-      }else if(this._model.getCurIdx() < 0){
-        this._model.curIdx = 4;
-        // this._initView();
-      }
-
-      var position = this.$slideItems.find('li[data-key=' + this._model.getCurIdx() + ']').width();
-
-      this.$slideItems.find('li').removeClass('current');
-      this.$slideItems.find('li[data-key=' + this._model.getCurIdx() + ']').addClass('current');
-
       this.$slideItems.css({
         'transition' : 'all ' + this._model.options.speed + 'ms ease',
         '-webkit-transform-style' : 'preserve-3d',
         'transform-style' : 'preserve-3d',
-        '-webkit-transform' : 'translate3d(' + ((-1) * this._model.itemWidth * this._model.getCurIdx()) + 'px, 0, 0)',
-        'transform' : 'translate3d(' + ((-1) * this._model.itemWidth * this._model.getCurIdx()) + 'px, 0, 0)'
+        '-webkit-transform' : 'translate3d(' + ((-1) * this._model.moveDelta) + 'px, 0, 0)',
+        'transform' : 'translate3d(' + ((-1) * this._model.moveDelta) + 'px, 0, 0)'
       });
 
       this._setCurrentIndicator(this._model.getIndicatorIdx());

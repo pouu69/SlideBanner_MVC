@@ -13,14 +13,17 @@
     self.device = null;
     self.isReRender = false;
     self.itemWidth = 0;
+    self.moveDelta = 0;
     self.startDragX = 0;
     self.nextDragX = 0;
     self.isDrag = false;
+    self.isClkNav = true;
     self.options = {
       'autoSlide' : true,
       'infinity' : true,
       'speed' : 500
-    }
+    },
+    self.infinityLoopInterval = null;
 
     self._observer = new Slider.Observer();
     self._request = new Slider.Request();
@@ -66,6 +69,7 @@
       this._request.fetch(options)
                     .then(function(data){
                       self.setItems(data);
+                      self.dispatchEvent('showView');
                     });
     },
 
@@ -76,8 +80,6 @@
     setItems: function(items){
       this._items = items;
       this._itemsLen = items.length;
-
-      this.dispatchEvent('showView');
     },
 
     getItems: function(){
@@ -88,12 +90,22 @@
       return this._itemsLen;
     },
 
+    setCurIdx: function(idx){
+      this._curIdx = idx;
+    },
+
     getCurIdx: function(){
       return this._curIdx;
     },
 
     _setIndicatorIdx: function(idx){
-      this._curIndicatorIdx = idx;
+      if(idx > this.getItemsLen() - 1 ){
+        this._curIndicatorIdx = 0;
+      }else if(idx < 0){
+        this._curIndicatorIdx = this._itemsLen - 1;
+      }else{
+        this._curIndicatorIdx = idx;
+      }
     },
 
     getIndicatorIdx: function(){
@@ -103,11 +115,15 @@
     /* custom 이벤트 관련 메서드's */
 
     moveToIndex: function(idx){
-      // if(idx < -1){
-      //   idx = this._itemsLen - 1;
-      // }else if(idx > (this._itemsLen)){
-      //   idx = this._itemsLen;
-      // }
+      if(idx < -1){
+        idx = this._itemsLen - 2;
+        this.moveDelta = this.itemWidth * (this._itemsLen - 2);
+      }else if(idx > this._itemsLen){
+        idx = 1;
+        this.moveDelta = this.itemWidth;
+      }else{
+        this.moveDelta = this.itemWidth * idx;
+      }
 
       this._curIdx = idx;
       this._setIndicatorIdx(this._curIdx);
@@ -116,10 +132,12 @@
     },
 
     moveNextItem: function(){
+      this.moveDelta += this.itemWidth;
       this.moveToIndex(this._curIdx + 1);
     },
 
     movePrevItem: function(){
+      this.moveDelta -= this.itemWidth;
       this.moveToIndex(this._curIdx - 1);
     },
 

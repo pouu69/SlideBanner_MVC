@@ -23,8 +23,8 @@
       this.$listeners.off(event);
     },
 
-    notify: function(event){
-      this.$listeners.trigger(event);
+    notify: function(event, args){
+      this.$listeners.trigger(event, args);
     }
   }
 
