@@ -20,6 +20,7 @@
     init: function(slideContainer){
       this.$slideContainer = slideContainer;
       this.$slideWrap = this.$slideContainer.children().first();
+      this.$cloneSlideWrap = null;
       this.$slideItems = null;
       this.$navigator = null;
       this.$indicator = null;
@@ -41,13 +42,16 @@
       this._responsiveSetItemWidth();
       this._setCurrentIndicator(this._model.getIndicatorIdx());
 
-      this.$slideItems.find('li').eq(this._model.getCurIdx()).addClass('current');
+      this.$slideItems.find('li[data-key=' + this._model.getCurIdx() + ']').addClass('current');
+      this.$slideItems.css({marginLeft: ((-1) * this._model.itemWidth)});
 
       if(this._model.isReRender){
         this._unBindEvts();
       }
       this._model.isReRender = true;
       this._bindEvts();
+      this.$cloneSlideWrap = this.$slideWrap.clone();
+
     },
 
     /* custom event 등록 / 실행 */
@@ -156,15 +160,12 @@
 
     _handleTransitionEnd: function(){
       this.$slideItems.css({'transition' : 'none'});
-
-      // var $itemLi = this.$slideItems.find('li');
-      // $itemLi.eq(this._model.getItemsLen()-1).after($itemLi.eq(0));
     },
 
     _responsiveSetItemWidth: function(){
       this._model.itemWidth = Math.floor(this.$slideWrap.outerWidth());
 
-      this.$slideItems.width(this._model.itemWidth * this._model.getItemsLen());
+      this.$slideItems.width(this._model.itemWidth * (this._model.getItemsLen() + 2));
       this.$slideItems.css({
         '-webkit-transform-style' : 'preserve-3d',
         'transform-style' : 'preserve-3d',
@@ -172,6 +173,7 @@
         'transform' : 'translate3d(' + ((-1) * this._model.itemWidth * this._model.getCurIdx()) + 'px, 0, 0)'
       });
       this.$slideItems.find('li').css({width: this._model.itemWidth+'px'});
+      this.$slideItems.css({marginLeft: ((-1) * this._model.itemWidth)});
     },
 
     _setCurrentIndicator: function(idx){
@@ -207,8 +209,19 @@
     /* render 콜백 메서드's */
 
     _move: function(){
-      var position = this.$slideItems.find('li').eq(this._model.getCurIdx()).width();
-      this.$slideItems.find('li').eq(this._model.getCurIdx()).addClass('current');
+      console.log(this._model.getCurIdx() , this._model.getItemsLen());
+      if(this._model.getCurIdx() > this._model.getItemsLen()){
+        this._model._curIdx = 1;
+        // this.$slideItems.replaceWith(this.$cloneSlideWrap);
+      }else if(this._model.getCurIdx() < 0){
+        this._model.curIdx = 4;
+        // this._initView();
+      }
+
+      var position = this.$slideItems.find('li[data-key=' + this._model.getCurIdx() + ']').width();
+
+      this.$slideItems.find('li').removeClass('current');
+      this.$slideItems.find('li[data-key=' + this._model.getCurIdx() + ']').addClass('current');
 
       this.$slideItems.css({
         'transition' : 'all ' + this._model.options.speed + 'ms ease',

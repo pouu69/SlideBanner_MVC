@@ -33,15 +33,20 @@
     makeItemsTpl: function(items){
       var resultTpl = '';
       for(var i = 0, len = items.length ; i < len ; i += 1 ){
-        var tpl = this.defaultItemTpl;
-        tpl = tpl.replace('{{key}}', i);
-        tpl = tpl.replace('{{link}}', items[i].link);
-        tpl = tpl.replace('{{image}}', items[i].image);
-
-        resultTpl = resultTpl + tpl;
+        resultTpl = resultTpl + this.makeItemTpl(i, items[i]);
       }
+      resultTpl = this.makeItemTpl(-1, items[items.length-1]) + resultTpl + this.makeItemTpl(items.length, items[0]);
       return this.defaultUlTpl.replace('{{items}}', resultTpl)
                               .replace('{{class}}', 'slide-items');
+    },
+
+    makeItemTpl: function(key, item){
+      var tpl = this.defaultItemTpl;
+      tpl = tpl.replace('{{key}}', key);
+      tpl = tpl.replace('{{link}}', item.link);
+      tpl = tpl.replace('{{image}}', item.image);
+
+      return tpl;
     },
 
     makeIndicatorItemTpl: function(items){

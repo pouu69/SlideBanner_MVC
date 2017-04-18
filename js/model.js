@@ -9,6 +9,7 @@
     self._curIdx = 0;
     self._curIndicatorIdx = 0;
 
+    self.direction = 0;
     self.device = null;
     self.isReRender = false;
     self.itemWidth = 0;
@@ -102,11 +103,11 @@
     /* custom 이벤트 관련 메서드's */
 
     moveToIndex: function(idx){
-      if(idx < 0){
-        idx = this._itemsLen - 1;
-      }else if(idx > (this._itemsLen - 1)){
-        idx = 0;
-      }
+      // if(idx < -1){
+      //   idx = this._itemsLen - 1;
+      // }else if(idx > (this._itemsLen)){
+      //   idx = this._itemsLen;
+      // }
 
       this._curIdx = idx;
       this._setIndicatorIdx(this._curIdx);
