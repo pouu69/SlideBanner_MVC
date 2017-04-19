@@ -259,6 +259,8 @@
      * @private
      */
     _responsiveSetItemWidth: function(){
+      var self = this;
+
       this._model.itemWidth = Math.floor(this.$slideWrap.outerWidth());
 
       this.$slideItems.css({
@@ -271,8 +273,10 @@
       });
 
       var $slideItemsLi = this.$slideItems.find('li');
-      this.$slideWrap.css({height: $slideItemsLi.first().height()});
       $slideItemsLi.css({width: this._model.itemWidth+'px'});
+      setTimeout(function(){
+        self.$slideWrap.css({height: $slideItemsLi.first().height()});
+      },10);
     },
 
     /**
