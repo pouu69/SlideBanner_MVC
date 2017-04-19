@@ -17,6 +17,11 @@
   View.prototype = {
     /* 초기화 메서드's */
 
+    /**
+     * View 요소 초기설정
+     * @param  {object} slideContainer 슬라이더 컨테이너 요소객체
+     * @public
+     */
     init: function(slideContainer){
       this.$slideContainer = slideContainer;
       this.$slideWrap = this.$slideContainer.children().first();
@@ -25,8 +30,12 @@
       this.$indicator = null;
     },
 
+    /**
+     * View 초기화
+     * @private
+     */
     _initView: function(){
-      this.$slideWrap.html(this._template.makeView(this._model.getItems()));
+      this.$slideWrap.html(this._template.makeView(this._model.items));
 
       this.$slideItems = this.$slideWrap.find('.slide-items');
       this.$navigator = $('.slide-navigator');
@@ -39,27 +48,43 @@
       }
 
       this._responsiveSetItemWidth();
-      this._setCurrentIndicator(this._model.getIndicatorIdx());
+      this._setCurrentIndicator(this._model.indicatorIdx);
 
       if(this._model.isReRender){
         this._unBindEvts();
       }
       this._model.isReRender = true;
       this._bindEvts();
+
+      if(this._model.options.autoSlide){
+        this.dispatchEvent('onAutoSlide');
+      }
     },
 
     /* custom event 등록 / 실행 */
 
+    /**
+     * Custom Event 등록
+     * @param  {string}   event    이벤트명
+     * @param  {Function} callback 호출할 콜백함수
+     * @public
+     */
     addEvent: function(event, callback){
       this._observer.subscribe(event, callback);
     },
 
+    /**
+     * 등록한 Custom Event 호출
+     * @param  {stirng} event 이벤트명
+     * @public
+     */
     dispatchEvent: function(event, args){
       this._observer.notify(event, args);
     },
 
     /**
-     * View에 바인딩할 이벤트 리스너 집합
+     * View에 바인딩할 이벤트 리스너 등록
+     * @private
      */
     _bindEvts: function(){
 
@@ -78,6 +103,10 @@
       this.$indicator.on('click', this._handleClickIndicator.bind(this));
     },
 
+    /**
+     * View에 바인딩할 이벤트 리스너 해제
+     * @private
+     */
     _unBindEvts: function(){
       window.removeEventListener('resize',this._handleResizeSetView.bind(this));
       window.removeEventListener('orientationchange',this._handleResizeSetView.bind(this));
@@ -94,6 +123,11 @@
       this.$indicator.off('click');
     },
 
+    /**
+     * 터치 이벤트 등록
+     * @param  {object} $item 터치 이벤트 등록할 요소
+     * @private
+     */
     _bindItemTouchEvt: function($item){
       $item.addEventListener('touchstart', this._handleStartDrag.bind(this), false)
       $item.addEventListener('touchmove', this._handleMoveDrag.bind(this), false)
@@ -101,6 +135,11 @@
       $item.addEventListener('touchcancel', this._handleEndDrag.bind(this), false);
     },
 
+    /**
+     * 터치 이벤트 해제
+     * @param  {object} $item 터치 이벤트 등록할 요소
+     * @private
+     */
     _unBindItemTouchEvt: function($item){
       $item.removeEventListener('touchstart', this._handleStartDrag.bind(this))
       $item.removeEventListener('touchmove', this._handleMoveDrag.bind(this))
@@ -110,26 +149,46 @@
 
     /* event 콜백 메서드's */
 
+    /**
+     * 터치(드래그) 시작 이벤트 핸들러
+     * @param  {object} e event객체
+     * @private
+     */
     _handleStartDrag: function(e){
       if(!this._model.isClkNav) return;
       this._model.isClkNav = false;
       this._model.startDrag(e.touches[0].clientX);
     },
 
+    /**
+     * 터치(드래그) 이동 이벤트 핸들러
+     * @param  {object} e event 객체
+     * @private
+     */
     _handleMoveDrag: function(e){
       this._model.moveDrag(e.touches[0].clientX);
       stopPropagation(e);
     },
 
+    /**
+     * 터치(드래그) 종료 이벤트 핸들러
+     * @param  {object} e event 객체
+     * @private
+     */
     _handleEndDrag: function(e){
       this._model.endDrag(e.changedTouches[0].clientX);
       stopPropagation(e);
       this._model.isClkNav = true;
     },
 
+    /**
+     * 네비게이션 클릭 이벤트 핸들러
+     * @param  {object} e event 객체
+     * @private
+     */
     _handleClickNavigator: function(e){
       if(e) e.preventDefault();
-      
+
       if(!this._model.isClkNav) return;
       this._model.isClkNav = false;
 
@@ -142,6 +201,11 @@
       }
     },
 
+    /**
+     * 인디케이터 클릭 이벤트 핸들러
+     * @param  {object} e event 객체
+     * @private
+     */
     _handleClickIndicator: function(e){
       if(e) e.preventDefault();
 
@@ -149,7 +213,12 @@
       this._model.moveToIndex(position);
     },
 
-    _handleResizeSetView(e){
+    /**
+     * resize 이벤트 핸들러
+     * @param  {object} e event 객체
+     * @private
+     */
+     _handleResizeSetView(e){
       if(e) e.preventDefault();
       var device = this.deviceCheck();
       if(device !== this._model.device){
@@ -159,57 +228,69 @@
       }
     },
 
+    /**
+     * transition 종료 이벤트 핸들러
+     * @param  {object} e event 객체
+     * @private
+     */
     _handleTransitionEnd: function(){
-      if(this._model.getCurIdx() > this._model.getItemsLen()-1){
+      if(this._model.curIdx > this._model.itemsLen-1){
         this.$slideItems.css({
-          'transition' : 'none',
+          'transition': 'none',
           'transform':'translate3d(0, 0, 0)'
         });
         this.dispatchEvent('setCurIdx', 0);
-      }else if(this._model.getCurIdx() < 0){
+        this.dispatchEvent('onAutoSlide');
+      }else if(this._model.curIdx < 0){
         this.$slideItems.css({
-          'transition' : 'none',
-          'transform':'translate3d('+ ((-1) * this._model.itemWidth * (this._model.getItemsLen()-1)) + 'px, 0, 0)'
+          'transition': 'none',
+          'transform':'translate3d('+ ((-1) * this._model.itemWidth * (this._model.itemsLen-1)) + 'px, 0, 0)'
         });
-        this.dispatchEvent('setCurIdx', this._model.getItemsLen()-1);
+        this.dispatchEvent('setCurIdx', this._model.itemsLen-1);
+        this._model.isClkNav = true;
       }else{
         this.$slideItems.css({'transition' : 'none'});
+        this.dispatchEvent('onAutoSlide');
       }
-
-      this._model.isClkNav = true;
     },
 
+    /**
+     * resize 시 변경되는 윈도우 사이즈에 맞게 너비 조정
+     * @private
+     */
     _responsiveSetItemWidth: function(){
       this._model.itemWidth = Math.floor(this.$slideWrap.outerWidth());
 
       this.$slideItems.css({
-        'width': this._model.itemWidth * (this._model.getItemsLen() + 2),
+        'width': this._model.itemWidth * (this._model.itemsLen + 2),
         'left': ((-1) * this._model.itemWidth),
         '-webkit-transform-style' : 'preserve-3d',
         'transform-style' : 'preserve-3d',
-        '-webkit-transform' : 'translate3d(' + ((-1) * this._model.itemWidth * this._model.getCurIdx()) + 'px, 0, 0)',
-        'transform' : 'translate3d(' + ((-1) * this._model.itemWidth * this._model.getCurIdx()) + 'px, 0, 0)'
+        '-webkit-transform' : 'translate3d(' + ((-1) * this._model.itemWidth * this._model.curIdx) + 'px, 0, 0)',
+        'transform' : 'translate3d(' + ((-1) * this._model.itemWidth * this._model.curIdx) + 'px, 0, 0)'
       });
-      this.$slideItems.find('li').css({width: this._model.itemWidth+'px'});
 
-      var height = this._model.device === 'mobile' ? 1036 : 318;
-
-      this.$slideWrap.css({
-        'height': height
-      });
+      var $slideItemsLi = this.$slideItems.find('li');
+      this.$slideWrap.css({height: $slideItemsLi.first().height()});
+      $slideItemsLi.css({width: this._model.itemWidth+'px'});
     },
 
+    /**
+     * class를 통해 현재 인디케이터 설정
+     * @param  {int} idx 현재 배너 인덱스
+     * @private
+     */
     _setCurrentIndicator: function(idx){
       this.$indicator.removeClass('current');
       $(this.$indicator[idx]).addClass('current');
     },
 
     /**
-     * VIEW render 이벤트 집합
-     * @param  {string} event                   이벤트 명
-     * @param  {array|object|string} parameters 넘길 파라미터
+     * VIEW render 커맨드 집합
+     * @param  {string} event 이벤트 명
+     * @public
      */
-    render: function(event, parameters){
+    render: function(event){
       var self = this;
       var Commands = {
         'move': function(){
@@ -231,6 +312,10 @@
 
     /* render 콜백 메서드's */
 
+    /**
+     * 네비게이션 or 인디케티어 클릭 or 자동플레이일 경우 슬라이더 이동
+     * @private
+     */
     _move: function(){
       this.$slideItems.css({
         'transition' : 'all ' + this._model.options.speed + 'ms ease',
@@ -240,12 +325,16 @@
         'transform' : 'translate3d(' + ((-1) * this._model.moveDelta) + 'px, 0, 0)'
       });
 
-      this._setCurrentIndicator(this._model.getIndicatorIdx());
+      this._setCurrentIndicator(this._model.indicatorIdx);
     },
 
+    /**
+     * 터치(드래그) 일 경우 슬라이더 이동
+     * @private
+     */
     _moveDrag: function(){
       if(this._model.isDrag){
-        var position = this.$slideItems.find('li').eq(this._model.getCurIdx()).width();
+        var position = this.$slideItems.find('li').eq(this._model.curIdx).width();
         var delta = this._model.nextDragX - this._model.startDragX;
 
         this.$slideItems
@@ -253,12 +342,16 @@
             'transition' : 'all ' + this._model.options.speed + 'ms ease',
             '-webkit-transform-style' : 'preserve-3d',
             'transform-style' : 'preserve-3d',
-            '-webkit-transform' : 'translate3d(' +  (delta + (-1) * position * this._model.getCurIdx())+ 'px, 0, 0)',
-            'transform' : 'translate3d(' +  (delta + (-1) * position * this._model.getCurIdx())+ 'px, 0, 0)'
+            '-webkit-transform' : 'translate3d(' +  (delta + (-1) * position * this._model.curIdx)+ 'px, 0, 0)',
+            'transform' : 'translate3d(' +  (delta + (-1) * position * this._model.curIdx)+ 'px, 0, 0)'
           });
       };
     },
 
+    /**
+     * 터치(드래그) 종료일 경우 슬라이더 이동 종료
+     * @private
+     */
     _endDrag: function(){
       if (this._model.isDrag) {
           var delta = this._model.nextDragX - this._model.startDragX;
@@ -266,11 +359,16 @@
             if(delta < 0) this._model.moveNextItem();
             else          this._model.movePrevItem();
           }else{
-            this._model.moveToIndex(this._model.getCurIdx());
+            this._model.moveToIndex(this._model.curIdx);
           }
       }
     },
 
+    /**
+     * 현재 장치 체크
+     * @return {string} 현재 장치값
+     * @private
+     */
     deviceCheck(){
       var curWindowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
       if(screen.width < 768 || curWindowWidth < 768){
