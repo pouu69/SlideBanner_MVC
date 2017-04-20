@@ -1,8 +1,3 @@
-# Lezin Web개발자 과제
-- 지원자: 박관웅
-- 지원분야: Web개발자/백오피스
-- 이메일: pouu69@naver.com
-
 ## SliderBanner MVC
 ### 프로젝트 구조
 - src
