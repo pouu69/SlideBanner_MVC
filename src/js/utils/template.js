@@ -1,4 +1,4 @@
-(function($, window){
+(function($, Slider){
 
   function Template(){
     var self = this;
@@ -94,6 +94,6 @@
     }
   }
 
-  window.Slider = window.Slider || {};
-  window.Slider.Template = Template;
-})(jQuery, window);
+  // window.Slider = window.Slider || {};
+  Slider.Template = Template;
+})(jQuery, Slider || {});

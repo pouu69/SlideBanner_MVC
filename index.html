@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8">
     <title>SlideBanner MVC</title>
-    <link rel="stylesheet" type="text/css" href="./css/index.css">
+    <link rel="stylesheet" type="text/css" href="./src/css/index.css">
   </head>
   <body>
     <div class="slide-container">
@@ -12,28 +13,28 @@
   </body>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
+  <script src="./src/namespace.js"></script>
   <!-- util class -->
-  <script src="./js/utils/utils.js"></script>
-  <script src="./js/utils/request.js"></script>
-  <script src="./js/utils/template.js"></script>
+  <script src="./src/js/utils/utils.js"></script>
+  <script src="./src/js/utils/request.js"></script>
+  <script src="./src/js/utils/template.js"></script>
 
   <!-- MVC class -->
-  <script src="./js/observer.js"></script>
-  <script src="./js/model.js"></script>
-  <script src="./js/view.js"></script>
-  <script src="./js/controller.js"></script>
-
+  <script src="./src/js/SliderObserver.js"></script>
+  <script src="./src/js/SliderModel.js"></script>
+  <script src="./src/js/SliderView.js"></script>
+  <script src="./src/js/SliderController.js"></script>
   <!-- Execute class -->
-  <script src="./js/SliderMVC.js"></script>
+  <script src="./src/SliderMVC.js"></script>
 
   <script>
   	$(document).ready(function(){
       var sliderMVC = new SliderMVC();
   		sliderMVC.initSlide($('.slide-container'),{
-  			url: 'url',
   			count: 4,
         autoSlide: false,
-  			speed: 1200
+  			speed: 1200,
+        infinity: true
   		});
   	});
   </script>

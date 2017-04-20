@@ -1,4 +1,4 @@
-(function($, window){
+(function(Slider, module){
   'use strict';
 
   function Model(){
@@ -19,6 +19,7 @@
     self._autoSlideInterval = null;
 
     self.options = {
+      'infinity': true,
       'autoSlide' : true,
       'speed' : 500
     },
@@ -42,6 +43,22 @@
      * @public
      */
     init: function(_options){
+      var self = this;
+      this._optionsMerge(_options);
+      this.fetchData(this.options)
+          .then(function(data){
+            // self.setItems(data);
+            self.items = data;
+            self.dispatchEvent('showView');
+          });
+    },
+
+    /**
+     * default옵션과 사용자가 전달한 option을 merge
+     * @param  {object} _options 사용자가 넘긴 옵션값들
+     * @private
+     */
+    _optionsMerge: function(_options){
       for(var key in _options){
         if(_options.hasOwnProperty(key)){
           this.options[key] = _options[key];
@@ -78,18 +95,12 @@
      * @public
      */
     fetchData: function(parameter){
-      var self = this;
-      var query = '?device=' + this.device + '&count=' + parameter.count;
       var options = {
-        url: parameter.url + query
+        url: "http://localhost:3000/" + this.device + "?_limit=" + parameter.count,
+        type: "get"
       };
 
-      this._request.fetch(options)
-                    .then(function(data){
-                      // self.setItems(data);
-                      self.items = data;
-                      self.dispatchEvent('showView');
-                    });
+      return this._request.fetch(options);
     },
 
     /**
@@ -104,11 +115,12 @@
     /* custom 이벤트 관련 메서드's */
 
     /**
-     * 인덱스 위치로 배너 이동
-     * @param  {int} idx 배너가 이동할 인덱스
-     * @public
+     * 무한 순회 일 경우 인덱스와 이동delta값 설정
+     * @param  {string} idx 다음 인덱스
+     * @return {string}     다음 인덱스 설정된 값
+     * @private
      */
-    moveToIndex: function(idx){
+    _infinityMove: function(idx){
       if(idx < -1){
         idx = this._itemsLen - 2;
         this.moveDelta = this.itemWidth * (this._itemsLen - 2);
@@ -117,6 +129,42 @@
         this.moveDelta = this.itemWidth;
       }else{
         this.moveDelta = this.itemWidth * idx;
+      }
+
+      return idx;
+    },
+
+    /**
+     * 무한 루프가 아닌 상황에서 인덱스와 이동delta 값 설정
+     * @param  {string} idx 다음 인덱스
+     * @return {string}     다음 인덱스 설정된 값
+     * @private
+     */
+    _notInfinityMove: function(idx){
+      if(idx > this.itemsLen-1){
+        this.moveDelta -= this.itemWidth;
+        idx = this.itemsLen - 1;
+      }else if(idx < 0){
+        this.moveDelta = 0;
+        idx = 0;
+      }else{
+        this.moveDelta = this.itemWidth * idx;
+      }
+      this.isClkNav = true;
+
+      return idx;
+    },
+
+    /**
+     * 인덱스 위치로 배너 이동
+     * @param  {int} idx 배너가 이동할 인덱스
+     * @public
+     */
+    moveToIndex: function(idx){
+      if(this.options.infinity) {
+        idx = this._infinityMove(idx);
+      } else {
+        idx = this._notInfinityMove(idx);
       }
 
       this.curIdx = idx;
@@ -174,6 +222,7 @@
      */
     endDrag: function(endDragX){
       if(this.isDrag && this.nextDragX !== 0){
+        this.isClkNav = true;
         this.dispatchEvent('endDrag');
       }
       this.isDrag = false;
@@ -420,6 +469,6 @@
     }
   }
 
-  window.Slider = window.Slider || {};
-  window.Slider.Model = Model;
-})(jQuery,window);
+  // window.Slider = window.Slider || {};
+  Slider.Model = Model;
+})(Slider || {});

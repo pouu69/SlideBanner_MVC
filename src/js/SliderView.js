@@ -1,4 +1,4 @@
-(function($, window){
+(function($, window, Slider){
   function View(model, slideContainer){
     var self = this;
 
@@ -91,11 +91,10 @@
       window.addEventListener('resize',this._handleResizeSetView.bind(this), false);
       window.addEventListener('orientationchange', this._handleResizeSetView.bind(this), false);
 
-      if(this._model.isTouch()){
-        var slideItems = document.getElementsByClassName('slide-items')[0].childNodes;
-        for(var i = 0, len = slideItems.length ; i < len ; i += 1){
-          this._bindItemTouchEvt(slideItems[i]);
-        }
+      if(this._model.device === 'mobile'){
+        this.$slideItems.find('li a').on('click', this._handleClkAnchor.bind(this));
+        this.$slideItems.on('mousedown', this._handleStartDrag.bind(this));
+        this.$slideItems.on('mousemove', this._handleMoveDrag.bind(this));
       }
 
       this.$slideItems.on('transitionend', this._handleTransitionEnd.bind(this));
@@ -111,11 +110,10 @@
       window.removeEventListener('resize',this._handleResizeSetView.bind(this));
       window.removeEventListener('orientationchange',this._handleResizeSetView.bind(this));
 
-      if(this._model.isTouch()){
-        var slideItems = document.getElementsByClassName('slide-items')[0].childNodes;
-        for(var i = 0, len = slideItems.length ; i < len ; i += 1){
-          this._unBindItemTouchEvt(slideItems[i]);
-        }
+      if(this._model.device === 'mobile'){
+        this.$slideItems.find('li a').off('click');
+        this.$slideItems.off('mousedown');
+        this.$slideItems.off('mousemove');
       }
 
       this.$slideItems.off('transitionend');
@@ -123,31 +121,21 @@
       this.$indicator.off('click');
     },
 
-    /**
-     * 터치 이벤트 등록
-     * @param  {object} $item 터치 이벤트 등록할 요소
-     * @private
-     */
-    _bindItemTouchEvt: function($item){
-      $item.addEventListener('touchstart', this._handleStartDrag.bind(this), false)
-      $item.addEventListener('touchmove', this._handleMoveDrag.bind(this), false)
-      $item.addEventListener('touchend', this._handleEndDrag.bind(this), false)
-      $item.addEventListener('touchcancel', this._handleEndDrag.bind(this), false);
-    },
-
-    /**
-     * 터치 이벤트 해제
-     * @param  {object} $item 터치 이벤트 등록할 요소
-     * @private
-     */
-    _unBindItemTouchEvt: function($item){
-      $item.removeEventListener('touchstart', this._handleStartDrag.bind(this))
-      $item.removeEventListener('touchmove', this._handleMoveDrag.bind(this))
-      $item.removeEventListener('touchend', this._handleEndDrag.bind(this))
-      $item.removeEventListener('touchcancel', this._handleEndDrag.bind(this));
-    },
-
     /* event 콜백 메서드's */
+
+    /**
+     * 배너 요소에 anchor 태그 이벤트 클릭 발생시 url 이동
+     * @param  {object} e event객체
+     * @private
+     */
+    _handleClkAnchor: function(e){
+      e.preventDefault();
+      if(this._model.isDrag){
+        this._model.isDrag = false;
+        var url = $(e.currentTarget).attr('href');
+        window.open(url, '_blank');
+      }
+    },
 
     /**
      * 터치(드래그) 시작 이벤트 핸들러
@@ -155,9 +143,7 @@
      * @private
      */
     _handleStartDrag: function(e){
-      if(!this._model.isClkNav) return;
-      this._model.isClkNav = false;
-      this._model.startDrag(e.touches[0].clientX);
+      this._model.startDrag(e.pageX);
     },
 
     /**
@@ -166,8 +152,12 @@
      * @private
      */
     _handleMoveDrag: function(e){
-      this._model.moveDrag(e.touches[0].clientX);
+      if(this._model.isDrag){
+          this.$slideItems.on('mouseup', this._handleEndDrag.bind(this));
+      }
+      this._model.moveDrag(e.pageX);
       stopPropagation(e);
+      e.preventDefault();
     },
 
     /**
@@ -176,9 +166,10 @@
      * @private
      */
     _handleEndDrag: function(e){
-      this._model.endDrag(e.changedTouches[0].clientX);
+      this.$slideItems.off('mouseup');
+      this._model.endDrag(e.pageX);
       stopPropagation(e);
-      this._model.isClkNav = true;
+      e.preventDefault();
     },
 
     /**
@@ -230,27 +221,40 @@
 
     /**
      * transition 종료 이벤트 핸들러
+     * 무한순회를 진행하기 위해 마지막 배너에서 오른쪽이동하거나, 첫번째 배너에서 왼쪽이동일 경우
+     * translate를 통해 배너의 위치를 유동적으로 변경후 배너를 이동시킨다.
      * @param  {object} e event 객체
      * @private
      */
     _handleTransitionEnd: function(){
-      if(this._model.curIdx > this._model.itemsLen-1){
-        this.$slideItems.css({
-          'transition': 'none',
-          'transform':'translate3d(0, 0, 0)'
-        });
-        this.dispatchEvent('setCurIdx', 0);
-        this.dispatchEvent('onAutoSlide');
-      }else if(this._model.curIdx < 0){
-        this.$slideItems.css({
-          'transition': 'none',
-          'transform':'translate3d('+ ((-1) * this._model.itemWidth * (this._model.itemsLen-1)) + 'px, 0, 0)'
-        });
-        this.dispatchEvent('setCurIdx', this._model.itemsLen-1);
+      if(!this._model.options.infinity){ // 무한순회가 아닌경우를 나누어서 진행
+        this.$slideItems.css({'transition' : 'none'});
         this._model.isClkNav = true;
       }else{
-        this.$slideItems.css({'transition' : 'none'});
-        this.dispatchEvent('onAutoSlide');
+        if(this._model.curIdx > this._model.itemsLen-1){
+          this.$slideItems.css({
+            'transition': 'none',
+            '-webkit-transform-style' : 'preserve-3d',
+            'transform-style' : 'preserve-3d',
+            '-webkit-transform':'translate3d(0, 0, 0)',
+            'transform':'translate3d(0, 0, 0)'
+          });
+          this.dispatchEvent('setCurIdx', 0);
+          this.dispatchEvent('onAutoSlide');
+        }else if(this._model.curIdx < 0){
+          this.$slideItems.css({
+            'transition': 'none',
+            '-webkit-transform-style' : 'preserve-3d',
+            'transform-style' : 'preserve-3d',
+            '-webkit-transform':'translate3d('+ ((-1) * this._model.itemWidth * (this._model.itemsLen-1)) + 'px, 0, 0)',
+            'transform':'translate3d('+ ((-1) * this._model.itemWidth * (this._model.itemsLen-1)) + 'px, 0, 0)'
+          });
+          this.dispatchEvent('setCurIdx', this._model.itemsLen-1);
+          this._model.isClkNav = true;
+        }else{
+          this.$slideItems.css({'transition' : 'none'});
+          this.dispatchEvent('onAutoSlide');
+        }
       }
     },
 
@@ -343,7 +347,7 @@
 
         this.$slideItems
           .css({
-            'transition' : 'all ' + this._model.options.speed + 'ms ease',
+            'transition' : 'all 100ms ease',
             '-webkit-transform-style' : 'preserve-3d',
             'transform-style' : 'preserve-3d',
             '-webkit-transform' : 'translate3d(' +  (delta + (-1) * position * this._model.curIdx)+ 'px, 0, 0)',
@@ -382,6 +386,6 @@
     }
   }
 
-  window.Slider = window.Slider || {};
-  window.Slider.View = View;
-})(jQuery, window);
+  // window.Slider = window.Slider || {};
+  Slider.View = View;
+})(jQuery, window || {}, Slider || {});

@@ -1,4 +1,4 @@
-(function($, window){
+(function($, Slider){
   'user strict';
 
   function Observer(){
@@ -47,4 +47,4 @@
 
   window.Slider = window.Slider || {};
   window.Slider.Observer = Observer;
-})(jQuery, window);
+})(jQuery, Slider || {});

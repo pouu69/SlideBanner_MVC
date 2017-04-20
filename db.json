@@ -1,0 +1,14 @@
+{
+  "mobile" : [
+    { "image": "https://cdn.lezhin.com/v2/inventory_items/6272864723140608/media/upperBannerMobile", "link": "https://www.lezhin.com/ko/payment" },
+    { "image": "https://cdn.lezhin.com/v2/inventory_items/4537033910124544/media/upperBannerMobile", "link": "https://www.lezhin.com/ko/page/sale1704W1_ALL" },
+    { "image": "https://cdn.lezhin.com/v2/inventory_items/5439666241929216/media/upperBannerMobile", "link": "https://www.lezhin.com/ko/comic/dalbox" },
+    { "image": "https://cdn.lezhin.com/v2/inventory_items/6120926790549504/media/upperBannerMobile", "link": "https://www.lezhin.com/ko/novel/leviathan" }
+  ],
+  "desktop" : [
+    { "image": "https://cdn.lezhin.com/v2/inventory_items/6272864723140608/media/upperBanner", "link": "https://www.lezhin.com/ko/payment" },
+    { "image": "https://cdn.lezhin.com/v2/inventory_items/4537033910124544/media/upperBanner", "link": "https://www.lezhin.com/ko/page/sale1704W1_ALL" },
+    { "image": "https://cdn.lezhin.com/v2/inventory_items/5439666241929216/media/upperBanner", "link": "https://www.lezhin.com/ko/comic/dalbox" },
+    { "image": "https://cdn.lezhin.com/v2/inventory_items/6120926790549504/media/upperBanner", "link": "https://www.lezhin.com/ko/novel/leviathan" }
+  ]
+}

@@ -1,4 +1,4 @@
-(function($, window){
+(function(Slider){
   function Controller(view, model){
     var self = this;
 
@@ -23,9 +23,9 @@
      * @public
      */
     initSlide: function(slideContainer, options){
+      this._model.device = this._view.deviceCheck();
       this._model.init(options);
       this._view.init(slideContainer);
-      this._initView(options);
     },
 
     /**
@@ -33,8 +33,14 @@
      * @private
      */
     _initView: function(){
+      var self = this;
       this._model.device = this._view.deviceCheck();
-      this._model.fetchData(this._model.options);
+      this._model.fetchData(this._model.options)
+                  .then(function(data){
+                    // self.setItems(data);
+                    self._model.items = data;
+                    self._showView();
+                  });
     },
 
     /**
@@ -118,6 +124,6 @@
     }
   }
 
-  window.Slider = window.Slider || {};
-  window.Slider.Controller = Controller;
-})(jQuery, window);
+  // window.Slider = window.Slider || {};
+  Slider.Controller = Controller;
+})(Slider || {});

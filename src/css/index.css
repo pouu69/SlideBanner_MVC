@@ -11,9 +11,6 @@
     position: relative;
     width: 100%;
     overflow: hidden;
-  /*width:100%;
-  overflow: hidden;
-  position: relative;*/
 }
 
 /**
@@ -26,31 +23,16 @@
     top: 0;
     margin: 0;
     padding: 0;
-  /*list-style: none;
-  margin:0;
-  padding:0;
-  white-space: nowrap;
-  position: relative;*/
 }
 
 .slide-wrap .slide-items li{
-    display: inline-block;
-    vertical-align: top;
-    white-space: normal;
-    /*padding: 2px;*/
-
-  /*display: inline-block;
-  position: relative;
-  float: left;
-  overflow: hidden;
-  height: auto;
-  margin-right: 0px;*/
+  display: inline-block;
+}
+.slide-wrap .slide-items li a{
+  display: block;
 }
 
-
 .slide-wrap .slide-items li img{
-  /*width: 100%;
-  display: inline-block;*/
   width: 100%;
   height: auto;
   display: block;
