@@ -94,6 +94,5 @@
     }
   }
 
-  // window.Slider = window.Slider || {};
   Slider.Template = Template;
 })(jQuery, Slider || {});

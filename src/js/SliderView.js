@@ -209,7 +209,7 @@
      * @param  {object} e event 객체
      * @private
      */
-     _handleResizeSetView(e){
+     _handleResizeSetView: function(e){
       if(e) e.preventDefault();
       var device = this.deviceCheck();
       if(device !== this._model.device){
@@ -377,7 +377,7 @@
      * @return {string} 현재 장치값
      * @private
      */
-    deviceCheck(){
+    deviceCheck: function(){
       var curWindowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
       if(screen.width < 768 || curWindowWidth < 768){
         return 'mobile';
@@ -386,6 +386,5 @@
     }
   }
 
-  // window.Slider = window.Slider || {};
   Slider.View = View;
 })(jQuery, window || {}, Slider || {});

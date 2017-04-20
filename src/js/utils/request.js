@@ -43,6 +43,5 @@
     }
   }
 
-  // window.Slider = window.Slider || {};
   Slider.Request = Request;
 })(jQuery, window || {}, Slider || {});

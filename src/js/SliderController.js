@@ -124,6 +124,5 @@
     }
   }
 
-  // window.Slider = window.Slider || {};
   Slider.Controller = Controller;
 })(Slider || {});

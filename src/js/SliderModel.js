@@ -469,6 +469,5 @@
     }
   }
 
-  // window.Slider = window.Slider || {};
   Slider.Model = Model;
 })(Slider || {});

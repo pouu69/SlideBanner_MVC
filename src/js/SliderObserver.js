@@ -45,6 +45,5 @@
     }
   }
 
-  window.Slider = window.Slider || {};
-  window.Slider.Observer = Observer;
+  Slider.Observer = Observer;
 })(jQuery, Slider || {});
