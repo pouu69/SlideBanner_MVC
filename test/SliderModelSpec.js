@@ -1,4 +1,3 @@
-// var SliderModel = require('../js/SliderModel.js');
 describe('Slider Model Test', function(){
   var sliderModel = new Slider.Model();
   var jObjContain = jasmine.objectContaining;
