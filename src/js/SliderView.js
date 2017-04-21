@@ -92,9 +92,19 @@
       window.addEventListener('orientationchange', this._handleResizeSetView.bind(this), false);
 
       if(this._model.device === 'mobile'){
-        this.$slideItems.find('li a').on('click', this._handleClkAnchor.bind(this));
-        this.$slideItems.on('mousedown', this._handleStartDrag.bind(this));
-        this.$slideItems.on('mousemove', this._handleMoveDrag.bind(this));
+        if(this._model.isTouch()){
+          var slideItems = document.getElementsByClassName('slide-items')[0];
+          slideItems.addEventListener('touchstart',this._handleStartDrag.bind(this), false);
+          slideItems.addEventListener('touchmove',this._handleMoveDrag.bind(this), false);
+          slideItems.addEventListener('touchend',this._handleEndDrag.bind(this), false);
+          slideItems.addEventListener('touchcancel',this._handleEndDrag.bind(this), false);
+        }else{
+          this.$slideItems.find('li a').on('click', this._handleClkAnchor.bind(this));
+          this.$slideItems.on('mousedown', this._handleStartDrag.bind(this));
+          this.$slideItems.on('mousemove', this._handleMoveDrag.bind(this));
+          this.$slideItems.on('mouseover', this._handleEndDrag.bind(this));
+
+        }
       }
 
       this.$slideItems.on('transitionend', this._handleTransitionEnd.bind(this));
@@ -112,8 +122,17 @@
 
       if(this._model.device === 'mobile'){
         this.$slideItems.find('li a').off('click');
-        this.$slideItems.off('mousedown');
-        this.$slideItems.off('mousemove');
+        if(this._model.isTouch()){
+          var slideItems = document.getElementsByClassName('slide-items')[0];
+          slideItems.removeEventListener('touchstart',this._handleStartDrag.bind(this));
+          slideItems.removeEventListener('touchmove',this._handleMoveDrag.bind(this));
+          slideItems.removeEventListener('touchend',this._handleEndDrag.bind(this));
+          slideItems.removeEventListener('touchcancel',this._handleEndDrag.bind(this));
+        }else{
+          this.$slideItems.off('mousedown');
+          this.$slideItems.off('mousemove');
+          this.$slideItems.off('mouseover');
+        }
       }
 
       this.$slideItems.off('transitionend');
@@ -143,7 +162,12 @@
      * @private
      */
     _handleStartDrag: function(e){
-      this._model.startDrag(e.pageX);
+      if(this._model.isTouch()){
+        this._model.startDrag(e.touches[0].clientX);
+      }else{
+        this._model.startDrag(e.clientX);
+      }
+
     },
 
     /**
@@ -152,12 +176,16 @@
      * @private
      */
     _handleMoveDrag: function(e){
-      if(this._model.isDrag){
-          this.$slideItems.on('mouseup', this._handleEndDrag.bind(this));
+      if(this._model.isTouch()){
+        this._model.moveDrag(e.touches[0].clientX);
+      }else{
+        if(this._model.isDrag){
+            this.$slideItems.on('mouseup', this._handleEndDrag.bind(this));
+        }
+        this._model.moveDrag(e.clientX);
+        stopPropagation(e);
+        e.preventDefault();
       }
-      this._model.moveDrag(e.pageX);
-      stopPropagation(e);
-      e.preventDefault();
     },
 
     /**
@@ -166,10 +194,14 @@
      * @private
      */
     _handleEndDrag: function(e){
-      this.$slideItems.off('mouseup');
-      this._model.endDrag(e.pageX);
-      stopPropagation(e);
-      e.preventDefault();
+      if(this._model.isTouch()){
+        this._model.endDrag(e.changedTouches[0].clientX);
+      }else{
+        this.$slideItems.off('mouseup');
+        this._model.endDrag(e.clientX);
+        stopPropagation(e);
+        e.preventDefault();
+      }
     },
 
     /**
@@ -278,9 +310,10 @@
 
       var $slideItemsLi = this.$slideItems.find('li');
       $slideItemsLi.css({width: this._model.itemWidth+'px'});
+      // height 를 조정하기 위한 트릭
       setTimeout(function(){
         self.$slideWrap.css({height: $slideItemsLi.first().height()});
-      },10);
+      },100);
     },
 
     /**
