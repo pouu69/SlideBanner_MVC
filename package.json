@@ -7,16 +7,13 @@
     "test": "test"
   },
   "scripts": {
-    "open": "open ./index.html",
+    "open": "open -a Google\\ Chrome index.html",
     "server": "npm install && node server.js",
-    "test": "open ./test/SliderModelRunner.html"
+    "test": "open -a Google\\ Chrome ./test/SliderModelRunner.html"
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "mocha": "^3.2.0",
-    "should": "^11.2.1"
-  },
+  "devDependencies": {},
   "dependencies": {
     "json-server": "^0.9.6"
   }
