@@ -33,6 +33,8 @@
   ````
 - 슬라이더(index.html) 실행
   ````
+  // 크롬브라우저가 index.html 자동으로 열어준다.
+  // 만약 크롬이없다면, index.html을 브라우저로 열기
   npm run open
   ````
 
@@ -40,6 +42,7 @@
 
 - Model layer 만 테스트 진행
   ````
+  // npm run server 통해 fake서버 실행 후 테스트 진행
   npm run test
   ````
 
