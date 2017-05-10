@@ -17,8 +17,8 @@
  * slide item's
  */
 .slide-wrap .slide-items{
-    font-size: 0;
-    white-space: nowrap;
+    /*font-size: 0;
+    white-space: nowrap;*/
     position: absolute;
     top: 0;
     margin: 0;
